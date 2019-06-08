@@ -85,6 +85,8 @@ namespace GHOptimizationTest {
 
 
             sliders[1].SetSliderValue(fopt);
+
+            EnsurePaintHandler();
         }
 
         /// <summary>
@@ -106,6 +108,57 @@ namespace GHOptimizationTest {
         /// </summary>
         public override Guid ComponentGuid {
             get { return new Guid("{50084e0a-caa3-472e-8e9a-a680604444d2}"); }
+        }
+        private bool _paintHandlerAssigned = false;
+
+        private void EnsurePaintHandler() {
+            if (_paintHandlerAssigned)
+                return;
+
+            Grasshopper.Instances.ActiveCanvas.CanvasPrePaintWires += PrePaintWires;
+            _paintHandlerAssigned = true;
+        }
+
+        private void PrePaintWires(Grasshopper.GUI.Canvas.GH_Canvas canvas) {
+            //// We should only draw wires if the document loaded in the canvas is the document we're in.
+            //if (!ReferenceEquals(GrasshopperDocument, canvas.Document))
+            //    return;
+
+            // Find all sliders that plug into the first component input.
+            var first = Component.Params.Input[0];
+            if (first.SourceCount == 0)
+                return;
+
+            foreach (var source in first.Sources) {
+                var slider = source as Grasshopper.Kernel.Special.GH_NumberSlider;
+                if (slider == null)
+                    continue;
+
+                var input = first.Attributes.InputGrip;
+                var output = slider.Attributes.OutputGrip;
+
+                var path = Grasshopper.GUI.Canvas.GH_Painter.ConnectionPath(
+                  input, output,
+                  Grasshopper.GUI.Canvas.GH_WireDirection.left,
+                  Grasshopper.GUI.Canvas.GH_WireDirection.right);
+
+                var edge = new System.Drawing.Pen(System.Drawing.Color.DeepPink, 8);
+                edge.DashCap = System.Drawing.Drawing2D.DashCap.Round;
+                edge.DashPattern = new float[] { 0.1f, 2f };
+
+                var edge2 = new System.Drawing.Pen(System.Drawing.Color.DeepPink, 8);
+
+                //canvas.Graphics.DrawPath(edge, path);
+
+                var test = new PointF[] {input, output};
+                var input2 = new PointF(input.X -50, input.Y);
+                var output2 = new PointF(output.X +50, output.Y);
+                //canvas.Graphics.DrawCurve(edge2, test);
+                canvas.Graphics.DrawBezier(edge2, input, input2, output2, output);
+
+                edge.Dispose();
+                path.Dispose();
+            }
         }
     }
 }

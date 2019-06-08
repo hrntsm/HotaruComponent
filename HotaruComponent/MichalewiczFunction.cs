@@ -101,11 +101,11 @@ namespace HotaruComponent {
         /// <summary>
         /// アイコンの設定。24x24 pixelsが推奨
         /// </summary>
-        //protected override System.Drawing.Bitmap Icon {
-        //    get {
-        //        return BeamAnalysis.Properties.Resource.CL_icon;
-        //    }
-        //}
+        protected override System.Drawing.Bitmap Icon {
+            get {
+                return null;
+            }
+        }
         /// <summary>
         /// GUIDの設定
         /// </summary>
