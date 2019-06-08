@@ -6,19 +6,19 @@ namespace HotaruComponent {
     public class HotaruAlgorithmInfo : GH_AssemblyInfo {
         public override string Name {
             get {
-                return "MISE";
+                return "Hotaru";
             }
         }
-        //public override Bitmap Icon {
-        //    get {
-        //        //Return a 24x24 pixel bitmap to represent this GHA library.
-        //        return;
-        //    }
-        //}
+        public override Bitmap Icon {
+            get {
+                //Return a 24x24 pixel bitmap to represent this GHA library.
+                return null;
+            }
+        }
         public override string Description {
             get {
                 //Return a short string describing the purpose of this GHA library.
-                return "Stress Analysis of the Simple Beam";
+                return null;
             }
         }
         public override Guid Id {
@@ -29,7 +29,7 @@ namespace HotaruComponent {
         public override string AuthorName {
             get {
                 //Return a string identifying you or your company.
-                return "hiron_rgrk";
+                return "hiron_rgkr";
             }
         }
         public override string AuthorContact {
