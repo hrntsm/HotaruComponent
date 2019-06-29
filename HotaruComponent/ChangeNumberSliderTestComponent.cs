@@ -9,11 +9,14 @@ using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
+using Grasshopper.Kernel.Attributes;
+using Grasshopper.GUI;
+using Grasshopper.GUI.Canvas;
 
 using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Drawing;
 using System.Reflection;
 using System.Collections;
 using System.Windows.Forms;
@@ -26,6 +29,32 @@ namespace GHOptimizationTest {
     public class ChangeNumberSliderTestComponent : GH_Component {
         GH_Document doc;
         IGH_Component Component;
+        public int Value { get; set; }
+
+        HotaruComponent.Utilities.InputForm _form;
+        public void DisplayForm() {
+            
+            _form = new HotaruComponent.Utilities.InputForm();
+            _form.ValueTrackBar.Value = Value;
+
+            _form.FormClosed += OnFormClosed;
+            _form.ValueTrackBar.ValueChanged += ValueTrackBar_ValueChanged;
+
+            GH_WindowsFormUtil.CenterFormOnCursor(_form, true);
+            _form.Show(Grasshopper.Instances.DocumentEditor);
+        }
+
+        private void ValueTrackBar_ValueChanged(object sender, EventArgs e) {
+            TrackBar trackBar = sender as TrackBar;
+            if (trackBar != null) {
+                Value = trackBar.Value;
+                ExpireSolution(true);
+            }
+        }
+
+        private void OnFormClosed(object sender, FormClosedEventArgs formClosedEventArgs) {
+            _form = null;
+        }
 
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -41,17 +70,27 @@ namespace GHOptimizationTest {
         }
 
         /// <summary>
+        /// カスタムの設定
+        /// </summary>
+        public override void CreateAttributes() {
+            m_attributes = new Attributes_Custom(this);
+        }
+
+        /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
             pManager.AddIntegerParameter("f(x*)", "f(x*)", "optimum", GH_ParamAccess.item);
             pManager.AddIntegerParameter("x", "x", "decision variable", GH_ParamAccess.item);
+            pManager[0].Optional = true;
+            pManager[1].Optional = true;
         }
 
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager) {
+            pManager.AddIntegerParameter("Value", "V", "Value via UI.", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -83,10 +122,14 @@ namespace GHOptimizationTest {
             // 以下のように遅らせるといいらしいけどうまくいかず
             doc.ScheduleSolution(5);
 
-
-            sliders[1].SetSliderValue(fopt);
+            sliders[1].SetSliderValue(Value);
 
             EnsurePaintHandler();
+
+
+            // 出力設定＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+            DA.SetData(0, Value + fopt);
+
         }
 
         /// <summary>
@@ -150,15 +193,26 @@ namespace GHOptimizationTest {
 
                 //canvas.Graphics.DrawPath(edge, path);
 
-                var test = new PointF[] {input, output};
-                var input2 = new PointF(input.X -50, input.Y);
-                var output2 = new PointF(output.X +50, output.Y);
+                var test = new PointF[] { input, output };
+                var input2 = new PointF(input.X - 50, input.Y);
+                var output2 = new PointF(output.X + 50, output.Y);
                 //canvas.Graphics.DrawCurve(edge2, test);
                 canvas.Graphics.DrawBezier(edge2, input, input2, output2, output);
 
                 edge.Dispose();
                 path.Dispose();
             }
+        }
+
+        public class Attributes_Custom : GH_ComponentAttributes {
+            public Attributes_Custom(IGH_Component ChangeNumberSliderTestComponent) 
+                : base(ChangeNumberSliderTestComponent) { }
+
+            public override GH_ObjectResponse RespondToMouseDoubleClick(GH_Canvas sender, GH_CanvasMouseEvent e) {
+                (Owner as ChangeNumberSliderTestComponent)?.DisplayForm();
+                return GH_ObjectResponse.Handled;
+            }
+
         }
     }
 }

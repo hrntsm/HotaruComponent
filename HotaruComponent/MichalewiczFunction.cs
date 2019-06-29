@@ -103,7 +103,7 @@ namespace HotaruComponent {
         /// </summary>
         protected override System.Drawing.Bitmap Icon {
             get {
-                return null;
+                return HotaruComponent.Properties.Resource.MF;
             }
         }
         /// <summary>
